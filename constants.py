@@ -10,10 +10,10 @@ SHORT_PRESS_DURATION = 3
 LONG_PRESS_DURATION = 6
 
 class TempUnit:
-    IMPERIAL = 'imperial'
-    STANDARD = 'standard'
-    METRIC = 'metric'
-    
+    IMPERIAL: str = 'imperial'
+    STANDARD: str = 'standard'
+    METRIC: str = 'metric'
+
     
 class Color:
     RED = (255, 0, 0)
