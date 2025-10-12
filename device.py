@@ -13,9 +13,8 @@ class Device:
         self.button = None
         self.error_code = 0
 
-
-# set initial state to Init
-self.change_state(Init(self))
+        # set initial state to Init
+        self.change_state(Init(self))
 
 
 def change_state(self, new_state):
