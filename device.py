@@ -23,7 +23,7 @@ class Device:
                 self.state.exit()
             except Exception:
                 pass
-            self.state = new_state
+        self.state = new_state
 
 
     def run(self):

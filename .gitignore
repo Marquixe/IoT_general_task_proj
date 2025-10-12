@@ -1,1 +1,19 @@
+# IDE
 .idea/
+.vscode/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+
+# Device files
+settings.json
+measurements.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MicroPython
+*.mpy
