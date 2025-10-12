@@ -1,9 +1,8 @@
-from .state import AbstractState
+from states.state import AbstractState
 from constants import DHT_PIN, Color
 from machine import Pin
-import time
-#from dht import DHT11 as DHT
-
+from dht import DHT22 as DHT
+#import time
 
 class Diagnostics(AbstractState):
     

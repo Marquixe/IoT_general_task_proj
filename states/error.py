@@ -1,5 +1,4 @@
-# states/error.py
-from states import AbstractState
+from states.state import AbstractState
 from states.sleep import Sleep
 from machine import Pin
 import time

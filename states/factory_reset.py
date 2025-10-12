@@ -1,5 +1,4 @@
-# states/factory_reset.py
-from states import AbstractState
+from states.state import AbstractState
 import ujson
 from machine import reset
 

@@ -1,13 +1,14 @@
-# states/init.py
-from states import AbstractState, factory_reset
+from states.diagnostics import Diagnostics
+from states.state import AbstractState
+from states.factory_reset import FactoryReset
+from constants import NP_PIN, SHORT_PRESS_DURATION, LONG_PRESS_DURATION
 #from states.configuration import Configuration
-#from states.diagnostics import Diagnostics
 from machine import Pin
 import time
 import ujson
 
 try:
-    from neopixel import NeoPixel
+    from neopixel import NeoPixel, Color
 except Exception:
     NeoPixel = None
 
