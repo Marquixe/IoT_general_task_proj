@@ -6,7 +6,7 @@ class AbstractState:
     def enter(self):
         pass
 
-    def esec(self):
+    def exec(self):
         pass
 
     def exit(self):

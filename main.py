@@ -1,4 +1,3 @@
-# main.py
 from device import Device
 
 if __name__ == '__main__':

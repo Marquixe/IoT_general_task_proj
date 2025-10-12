@@ -1,36 +1,59 @@
-from states.state import AbstractState
-from states.error import Error
-import dht
-from machine import Pin
+from .state import AbstractState
+from constants import MEASUREMENTS_FILE
+from helpers import convert_temp
 import ujson
 import time
 
+
 class Operation(AbstractState):
-    def __init__(self, device):
-        super().__init__(device)
-        self.name = "Measurement"
+
+    def enter(self):
+        pass
 
     def exec(self):
-        # Meranie zo senzora DHT
         try:
-            sensor = dht.DHT11(Pin(14))
+            # Use the sensor already initialized in Diagnostics
+            sensor = self.device.sensor
             sensor.measure()
             temp = sensor.temperature()
             hum = sensor.humidity()
 
-            # Uloženie dát do súboru
-            measurement = {"time": time.time(), "temperature": temp, "humidity": hum}
+            # Convert temperature based on user settings
+            temp_converted = convert_temp(temp, self.device.settings.units)  # ✅ FIXED: use .units not ["units"]
+
+            # Create measurement record
+            measurement = {
+                "time": time.time(),
+                "temperature": temp_converted,
+                "humidity": hum,
+                "units": self.device.settings.units
+            }
+
+            # Load existing measurements
             measurements = []
             try:
-                with open(self.device.settings["measurements_file"], "r") as f:
+                with open(MEASUREMENTS_FILE, "r") as f:  # ✅ FIXED: use constant
                     measurements = ujson.load(f)
             except:
-                pass
+                pass  # File doesn't exist yet
+
+            # Append new measurement
             measurements.append(measurement)
-            with open(self.device.settings["measurements_file"], "w") as f:
+
+            # Save back to file
+            with open(MEASUREMENTS_FILE, "w") as f:
                 ujson.dump(measurements, f)
 
-            self.device.change_state(ConnectingToWiFi(self.device))
-        except:
-            self.device.error_code = "MEASUREMENT_ERROR"
-            self.device.change_state(Error(self.device))
+            print(f'Measurement saved: {temp_converted}°, {hum}%')
+
+            # After successful measurement, go to sleep
+            from .sleep import Sleep  # ✅ ADDED: transition to sleep
+            self.device.change_state(Sleep(self.device))
+
+        except Exception as e:
+            # On any error during measurement, go to error state
+            from .error import Error
+            self.device.change_state(Error(self.device, 'Measurement failed'))
+
+    def exit(self):
+        pass
