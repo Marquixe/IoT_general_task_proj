@@ -9,7 +9,6 @@ class ConnectingWiFi(AbstractState):
         pass
 
     def exec(self):
-
         ssid = self.device.settings.wifi_ssid
         password = self.device.settings.wifi_password
 
@@ -18,7 +17,8 @@ class ConnectingWiFi(AbstractState):
             self.device.change_state(Error(self.device, 'WiFi SSID not configured'))
             return
 
-        wlan = network.WLAN(network.AP_IF)
+        # Use STA_IF (Station/Client mode) to connect to existing WiFi
+        wlan = network.WLAN(network.STA_IF)
         wlan.active(True)
         wlan.connect(ssid, password)
 
@@ -33,7 +33,10 @@ class ConnectingWiFi(AbstractState):
             print('.', end='')
             time.sleep(1)
 
+        print()  # New line
+
         if wlan.status() != 3:
+            wlan.active(False)
             from .error import Error
             self.device.change_state(Error(self.device, 'WiFi connection failed'))
             return
@@ -44,7 +47,8 @@ class ConnectingWiFi(AbstractState):
         # Sync time via NTP
         self.sync_time()
 
-        # TODO Publishing state
+        # TODO: In next lab, publish data via MQTT here
+        # For now, just go to sleep
         from .sleep import Sleep
         self.device.change_state(Sleep(self.device))
 
@@ -52,6 +56,7 @@ class ConnectingWiFi(AbstractState):
         try:
             import ntptime
             ntptime.host = self.device.settings.ntp_host
+            ntptime.timeout = 5
             ntptime.settime()
             print('Time synchronized via NTP')
 

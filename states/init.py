@@ -24,6 +24,7 @@ class Init(AbstractState):
                 self.led[0] = Color.GREEN
                 self.led.write()
                 self.device.led = self.led
+            print("LED initialized...")
         except Exception:
             self.led = None
 
@@ -31,6 +32,7 @@ class Init(AbstractState):
         try:
             self.btn_pin = Pin(BTN_PIN, Pin.IN, Pin.PULL_UP)
             self.device.button = self.btn_pin
+            print("Button initialized...")
         except Exception:
             self.btn_pin = None
 
@@ -39,6 +41,8 @@ class Init(AbstractState):
         try:
             s = get_settings()
             self.device.settings = s
+            print()
+            print("Settings initialized...")
         except Exception:
             # If settings don't exist or are invalid, go to Configuration
             from .configuration import Configuration

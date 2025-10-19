@@ -34,6 +34,7 @@ class Device:
         try:
             while True:
                 try:
+                    print("Current State:", type(self.state).__name__)
                     self.state.enter()
                     self.state.exec()
                 except SystemExit:

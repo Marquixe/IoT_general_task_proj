@@ -12,7 +12,6 @@ class Measurement(AbstractState):
     def exec(self):
         try:
             sensor = self.device.sensor
-            sensor.measure()
             temp = sensor.temperature()
             hum = sensor.humidity()
 
@@ -39,7 +38,7 @@ class Measurement(AbstractState):
             with open(MEASUREMENTS_FILE, "w") as f:
                 ujson.dump(measurements, f)
 
-            print(f'Measured: {temp}°C, {hum}%')
+            print(f'Sensor: {sensor is not None}, Measured: {temp}°C, {hum}%')
 
             # Try to connect to WiFi to publish data
             from .connecting_wifi import ConnectingWiFi

@@ -1,7 +1,9 @@
 from device import Device
 
 if __name__ == '__main__':
+    print("Initializing device...")
     device = Device()
+    print("Starting device...")
     device.run()
 
 
