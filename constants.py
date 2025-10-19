@@ -5,9 +5,13 @@ NP_PIN = 18
 SETTINGS_FILE = '/settings.json'
 MEASUREMENTS_FILE = '/measurements.json'
 
-
 SHORT_PRESS_DURATION = 3
 LONG_PRESS_DURATION = 6
+
+AP_SSID_PREFIX = 'thsensor'
+AP_PASSWORD = 'thsensor'
+
+DEFAULT_NTP_HOST = 'pool.ntp.org'
 
 class TempUnit:
     IMPERIAL: str = 'imperial'

@@ -1,5 +1,8 @@
+from neopixel import NeoPixel
 from constants import DHT_PIN, BTN_PIN, NP_PIN
 from states.init import Init
+from dht import DHT22 as DHT
+from machine import Pin
 
 
 class Device:
@@ -7,9 +10,9 @@ class Device:
         # hardware placeholders
         self.state = None
         self.settings = None
-        self.sensor = None
-        self.led = None
-        self.button = None
+        self.sensor = DHT(Pin(DHT_PIN))
+        self.led = NeoPixel(Pin(NP_PIN), 1)
+        self.button = Pin(BTN_PIN, Pin.IN, Pin.PULL_UP)
         self.error_code = 0
 
         # set initial state to Init

@@ -1,7 +1,7 @@
 from .state import AbstractState
 from constants import DHT_PIN
 from machine import Pin
-from dht import DHT22 as DHT
+from dht import DHT22 as DHT  #?
 
 
 class Diagnostics(AbstractState):
@@ -10,14 +10,11 @@ class Diagnostics(AbstractState):
         pass
 
     def exec(self):
-        # Try to create sensor
-        try:
-            pin = Pin(DHT_PIN, Pin.IN)
-            sensor = DHT(pin)
-            self.device.sensor = sensor
-        except Exception as e:
+        # Using old sensor instance
+        sensor = self.device.sensor
+        if sensor is None:
             from .error import Error
-            self.device.change_state(Error(self.device, 'Sensor init failed'))
+            self.device.change_state(Error(self.device, 'Sensor not initialized'))
             return
 
         # Read measurement
@@ -37,8 +34,8 @@ class Diagnostics(AbstractState):
             return
 
         # All checks passed -> go to Operation
-        from .operation import Operation
-        self.device.change_state(Operation(self.device))
+        from .measurement import Measurement
+        self.device.change_state(Measurement(self.device))
 
     def exit(self):
         pass
