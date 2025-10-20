@@ -1,8 +1,10 @@
 from .state import AbstractState
 from constants import Color, AP_SSID_PREFIX, AP_PASSWORD
+from web_interface import run_server
 import network
 import machine
 import time
+import uasyncio
 
 
 class Configuration(AbstractState):
@@ -43,9 +45,15 @@ class Configuration(AbstractState):
 
     def exec(self):
         print('>> Configuration State')
-        # TODO: Set up Access Point and web server here
-        # For now, simulate configuration with timeout
+        try:
+            loop = uasyncio.get_event_loop()
+        except RuntimeError:
+            loop = uasyncio.new_event_loop()
+            uasyncio.set_event_loop(loop)
+
+        loop.create_task(run_server())
         print('Configuration mode active. Waiting for settings...')
+        loop.run_until_complete(uasyncio.sleep(60))
         time.sleep(60)
 
         # After configuration or timeout, restart the device
