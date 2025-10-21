@@ -42,24 +42,43 @@ class Configuration(AbstractState):
         except Exception as e:
             print(f'Failed to create AP: {e}')
 
-
     def exec(self):
         print('>> Configuration State')
+
         try:
             loop = uasyncio.get_event_loop()
         except RuntimeError:
             loop = uasyncio.new_event_loop()
             uasyncio.set_event_loop(loop)
 
-        loop.create_task(run_server())
+        loop.create_task(run_server())  # <-- FIX
+        loop.create_task(self.auto_exit())  # <-- NEBLOKUJE EVENT LOOP
+
         print('Configuration mode active. Waiting for settings...')
-        loop.run_until_complete(uasyncio.sleep(60))
-        time.sleep(60)
+        loop.run_forever()
 
-        # After configuration or timeout, restart the device
-
+    async def auto_exit(self):
+        await uasyncio.sleep(60)  # počkaj 60 sekúnd
         from .connection_check import ConnectionCheck
         self.device.change_state(ConnectionCheck(self.device))
+
+    # def exec(self):
+    #     print('>> Configuration State')
+    #     try:
+    #         loop = uasyncio.get_event_loop()
+    #     except RuntimeError:
+    #         loop = uasyncio.new_event_loop()
+    #         uasyncio.set_event_loop(loop)
+    #
+    #     loop.create_task(run_server())
+    #     print('Configuration mode active. Waiting for settings...')
+    #     loop.run_until_complete(uasyncio.sleep(60))
+    #     time.sleep(60)
+    #
+    #     # After configuration or timeout, restart the device
+    #
+    #     from .connection_check import ConnectionCheck
+    #     self.device.change_state(ConnectionCheck(self.device))
 
     def exit(self):
         try:

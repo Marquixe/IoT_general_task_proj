@@ -10,8 +10,6 @@ if __name__ == '__main__':
 
 
 
-
-
 # # main.py
 # #from dht import DHT11
 # from machine import Pin

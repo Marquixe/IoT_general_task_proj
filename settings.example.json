@@ -1,6 +1,6 @@
 {
   "units": "standard",
-  "wifi_ssid": "",
-  "wifi_password": "",
+  "wifi_ssid": "stew",
+  "wifi_password": "87654321",
   "ntp_host": "pool.ntp.org"
 }
