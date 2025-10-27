@@ -6,11 +6,13 @@ import time
 
 
 class Publishing(AbstractState):
+    """Publishing state - sends measurements via MQTT in Smart Department format."""
 
     def enter(self):
         pass
 
     def exec(self):
+
         # Check if MQTT is configured
         if not self.device.settings.mqtt_broker:
             print('MQTT not configured, skipping publish')
@@ -49,7 +51,6 @@ class Publishing(AbstractState):
 
         except Exception as e:
             print(f'Publishing error: {e}')
-            # Keep measurements for next attempt
 
         # Always go to sleep after publishing attempt
         from .sleep import Sleep
@@ -67,9 +68,14 @@ class Publishing(AbstractState):
             # MQTT broker settings
             broker = self.device.settings.mqtt_broker
             port = self.device.settings.mqtt_port or 1883
-            topic = self.device.settings.mqtt_topic or 'sensor/data'
+
+            # Smart Department topic format
+            status_topic = self.device.settings.get_mqtt_topic('status')
+            data_topic = self.device.settings.get_mqtt_topic('data')
 
             print(f'Connecting to MQTT broker: {broker}:{port}')
+            print(f'Status topic: {status_topic}')
+            print(f'Data topic: {data_topic}')
 
             # Create MQTT client
             client = MQTTClient(
@@ -79,11 +85,9 @@ class Publishing(AbstractState):
                 keepalive=60
             )
 
-            # Set Last Will and Testament (LWT)
-            # Broker will send this if device disconnects unexpectedly
-            lwt_topic = f'{topic}/status'
+            # Set Last Will and Testament
             lwt_message = ujson.dumps({'status': 'offline'})
-            client.set_last_will(lwt_topic, lwt_message, retain=True, qos=1)
+            client.set_last_will(status_topic, lwt_message, retain=True, qos=1)
 
             # Connect to broker
             result = client.connect()
@@ -95,48 +99,65 @@ class Publishing(AbstractState):
 
             # Publish online status
             online_message = ujson.dumps({'status': 'online'})
-            client.publish(lwt_topic, online_message, retain=True, qos=1)
+            client.publish(status_topic, online_message, retain=True, qos=1)
 
-            # Publish each measurement
-            published_count = 0
+            # Create Smart Department payload format
+            metrics = []
             for measurement in measurements:
-                try:
-                    # Convert temperature to user's preferred unit
-                    temp = convert_temp(
-                        measurement['temperature'],
-                        self.device.settings.units
-                    )
+                # Convert temperature to user's preferred unit
+                temp = convert_temp(
+                    measurement['temperature'],
+                    self.device.settings.units
+                )
 
-                    # Create payload with ISO 8601 timestamp
-                    payload = ujson.dumps({
-                        'timestamp': measurement['time'],
-                        'temperature': round(temp, 2),
-                        'humidity': round(measurement['humidity'], 2),
-                        'unit': self.device.settings.units
-                    })
+                # Add temperature metric
+                metrics.append({
+                    'dt': self.format_iso8601(measurement['time']),
+                    'name': 'temperature',
+                    'value': round(temp, 2),
+                    'units': self.device.settings.units
+                })
 
-                    # Publish with QoS 1 (at least once delivery)
-                    client.publish(topic, payload, qos=1)
-                    published_count += 1
-                    print(f'Published: {payload}')
+                # Add humidity metric
+                metrics.append({
+                    'dt': self.format_iso8601(measurement['time']),
+                    'name': 'humidity',
+                    'value': round(measurement['humidity'], 2),
+                    'units': '%'
+                })
 
-                    # Small delay between publishes
-                    time.sleep(0.1)
+            # Create payload with current timestamp
+            payload = ujson.dumps({
+                'dt': self.format_iso8601(time.time()),
+                'metrics': metrics
+            })
 
-                except Exception as e:
-                    print(f'Failed to publish measurement: {e}')
-                    continue
-
-            print(f'Successfully published {published_count}/{len(measurements)} measurements')
+            # Publish data
+            client.publish(data_topic, payload, qos=1)
+            print(f'Published {len(measurements)} measurements')
+            print(f'Payload: {payload[:100]}...')
 
             # Disconnect cleanly
             client.disconnect()
 
-            return published_count > 0
+            return True
 
         except Exception as e:
             print(f'MQTT error: {e}')
             return False
+
+    def format_iso8601(self, timestamp):
+        try:
+            import time
+            # Convert timestamp to time tuple
+            dt = time.gmtime(int(timestamp))
+            # Format as ISO 8601
+            return "{:04d}-{:02d}-{:02d}T{:02d}:{:02d}:{:02d}Z".format(
+                dt[0], dt[1], dt[2],  # Year, Month, Day
+                dt[3], dt[4], dt[5]  # Hour, Minute, Second
+            )
+        except:
+            return "1970-01-01T00:00:00Z"
 
     def exit(self):
         pass

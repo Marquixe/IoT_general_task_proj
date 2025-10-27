@@ -47,10 +47,14 @@ class ConnectingWiFi(AbstractState):
         # Sync time via NTP
         self.sync_time()
 
-        # TODO: In next lab, publish data via MQTT here
-        # For now, just go to sleep
-        from .sleep import Sleep
-        self.device.change_state(Sleep(self.device))
+        # Go to Publishing state to send data via MQTT
+        try:
+            from .publishing import Publishing
+            self.device.change_state(Publishing(self.device))
+        except ImportError:
+            # If Publishing state doesn't exist, just sleep
+            from .sleep import Sleep
+            self.device.change_state(Sleep(self.device))
 
     def sync_time(self):
         try:

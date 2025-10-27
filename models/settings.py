@@ -3,13 +3,25 @@ from constants import TempUnit
 
 
 class Settings(Dataclass):
+    # Temperature settings
     units: str = TempUnit.STANDARD
+
+    # WiFi settings
     wifi_ssid: str = ''
     wifi_password: str = ''
+
+    # Time sync
     ntp_host: str = 'pool.ntp.org'
+
+    # MQTT settings
     mqtt_broker: str = ''
     mqtt_port: int = 1883
-    mqtt_topic: str = ''
+
+    # MQTT topic structure (Smart Department format)
+    department: str = 'kpi'
+    room: str = 'kronos'
+    device_name: str = 'thsensor'
+    device_id: str = 'mm272ar'
 
     @validator('units')
     def check_units(self, value):
@@ -27,3 +39,6 @@ class Settings(Dataclass):
         # Password can be empty for open networks
         if value and (len(value) < 8 or len(value) > 63):
             raise ValueError('WiFi password must be 8-63 characters')
+
+    def get_mqtt_topic(self, suffix):
+        return f"{self.department}/{self.room}/{self.device_name}/{self.device_id}/{suffix}"

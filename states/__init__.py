@@ -7,6 +7,7 @@ from .sleep import Sleep
 from .error import Error
 from .connecting_wifi import ConnectingWiFi
 from .connection_check import ConnectionCheck
+from .publishing import Publishing
 
 __all__ = ['Init', 'Diagnostics', 'Configuration', 'FactoryReset', 'Measurement', 'Sleep', 'Error',
-           'ConnectingWiFi', 'ConnectionCheck']
+           'ConnectingWiFi', 'ConnectionCheck', 'Publishing']
