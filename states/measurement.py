@@ -12,14 +12,15 @@ class Measurement(AbstractState):
     def exec(self):
         try:
             sensor = self.device.sensor
+            time.sleep(2)
+            sensor.measure()
+            time.sleep(0.1)
             temp = sensor.temperature()
             hum = sensor.humidity()
 
-            # Save in NORMALIZED format (always Celsius)
-            # Conversion happens later when publishing
             measurement = {
                 "time": time.time(),
-                "temperature": temp,  # Keep in Celsius
+                "temperature": temp,
                 "humidity": hum
             }
 

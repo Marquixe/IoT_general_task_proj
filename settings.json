@@ -2,5 +2,8 @@
   "units": "standard",
   "wifi_ssid": "stew",
   "wifi_password": "87654321",
-  "ntp_host": "pool.ntp.org"
+  "ntp_host": "pool.ntp.org",
+  "mqtt_broker": "test.mosquitto.org",
+  "mqtt_port": 1883,
+  "mqtt_topic": "thsensor/mm272qr"
 }

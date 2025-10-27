@@ -32,13 +32,18 @@ class Configuration(AbstractState):
             ap.config(essid=ssid, password=password)
 
             # Wait for AP to be active
-            while not ap.active():
+            max_wait = 10
+            while not ap.active() and max_wait > 0:
                 time.sleep(0.1)
+                max_wait -= 1
 
-            print(f'Access Point created: {ssid}')
-            print(f'Password: {password}')
-            print(f'IP: {ap.ifconfig()[0]}')
-            print(f'Connect and navigate to: http://{ap.ifconfig()[0]}')
+            if ap.active():
+                print(f'Access Point created: {ssid}')
+                print(f'Password: {password}')
+                print(f'IP: {ap.ifconfig()[0]}')
+                print(f'Connect and navigate to: http://{ap.ifconfig()[0]}')
+            else:
+                print('Failed to activate Access Point')
         except Exception as e:
             print(f'Failed to create AP: {e}')
 
@@ -46,39 +51,27 @@ class Configuration(AbstractState):
         print('>> Configuration State')
 
         try:
-            loop = uasyncio.get_event_loop()
-        except RuntimeError:
-            loop = uasyncio.new_event_loop()
-            uasyncio.set_event_loop(loop)
+            try:
+                loop = uasyncio.get_event_loop()
+            except RuntimeError:
+                loop = uasyncio.new_event_loop()
+                uasyncio.set_event_loop(loop)
 
-        loop.create_task(run_server())  # <-- FIX
-        loop.create_task(self.auto_exit())  # <-- NEBLOKUJE EVENT LOOP
+            server_task = loop.create_task(run_server())
+            print('Configuration mode active. Timeout in 3 minutes...')
+            try:
+                loop.run_until_complete(uasyncio.sleep(180))
+            except KeyboardInterrupt:
+                pass
 
-        print('Configuration mode active. Waiting for settings...')
-        loop.run_forever()
+            server_task.cancel()
+            print('Configuration timeout reached')
 
-    async def auto_exit(self):
-        await uasyncio.sleep(60)  # počkaj 60 sekúnd
+        except Exception as e:
+            print(f'Configuration error: {e}')
+
         from .connection_check import ConnectionCheck
         self.device.change_state(ConnectionCheck(self.device))
-
-    # def exec(self):
-    #     print('>> Configuration State')
-    #     try:
-    #         loop = uasyncio.get_event_loop()
-    #     except RuntimeError:
-    #         loop = uasyncio.new_event_loop()
-    #         uasyncio.set_event_loop(loop)
-    #
-    #     loop.create_task(run_server())
-    #     print('Configuration mode active. Waiting for settings...')
-    #     loop.run_until_complete(uasyncio.sleep(60))
-    #     time.sleep(60)
-    #
-    #     # After configuration or timeout, restart the device
-    #
-    #     from .connection_check import ConnectionCheck
-    #     self.device.change_state(ConnectionCheck(self.device))
 
     def exit(self):
         try:
